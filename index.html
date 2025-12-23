@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pratik Roy - Windows 95 Portfolio</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Startup Screen -->
+    <div id="startup-screen" class="startup-screen">
+        <div class="startup-content">
+            <div class="startup-logo">
+                <div class="windows-logo">
+                    <div class="windows-window"></div>
+                    <div class="windows-window"></div>
+                    <div class="windows-window"></div>
+                    <div class="windows-window"></div>
+                </div>
+                <h1>Pratik<span class="version">OS</span></h1>
+            </div>
+            <div class="loading-container">
+                <div class="loading-bar">
+                    <div class="loading-progress" id="loading-progress"></div>
+                </div>
+                <div class="loading-text">
+                    <span id="loading-status">Starting up...</span>
+                    <span id="loading-percent">0%</span>
+                </div>
+            </div>
+            <div class="startup-footer">
+                <p>Copyright © 2024 Pratik Roy Portfolio</p>
+                <p>Portfolio OS v2.0</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Shutdown Screen -->
+    <div id="shutdown-screen" class="shutdown-screen">
+        <div class="shutdown-content">
+            <div class="shutdown-message">
+                <h2>Thank you for visiting Pratik's Portfolio!</h2>
+                <p style="margin: 20px 0; font-size: 16px;">Hope to connect with you soon!</p>
+                <div class="shutdown-icon">
+                    <i class="fas fa-heart"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Desktop -->
+    <div id="desktop" class="desktop">
+        <!-- Desktop Icons -->
+        <div class="desktop-icons">
+            <div class="desktop-icon" data-app="about" id="icon-about">
+                <div class="icon-img"><i class="fas fa-user"></i></div>
+                <span class="icon-label">About Pratik</span>
+            </div>
+            <div class="desktop-icon" data-app="projects" id="icon-projects">
+                <div class="icon-img"><i class="fas fa-folder"></i></div>
+                <span class="icon-label">My Projects</span>
+            </div>
+            <div class="desktop-icon" data-app="skills" id="icon-skills">
+                <div class="icon-img"><i class="fas fa-cogs"></i></div>
+                <span class="icon-label">My Skills</span>
+            </div>
+            <div class="desktop-icon" data-app="contact" id="icon-contact">
+                <div class="icon-img"><i class="fas fa-envelope"></i></div>
+                <span class="icon-label">Contact Me</span>
+            </div>
+            <div class="desktop-icon" data-app="education" id="icon-education">
+                <div class="icon-img"><i class="fas fa-graduation-cap"></i></div>
+                <span class="icon-label">Education</span>
+            </div>
+            <div class="desktop-icon" data-app="resume" id="icon-resume">
+                <div class="icon-img"><i class="fas fa-file-download"></i></div>
+                <span class="icon-label">My Resume</span>
+            </div>
+            <div class="desktop-icon" data-app="social" id="icon-social">
+                <div class="icon-img"><i class="fas fa-share-alt"></i></div>
+                <span class="icon-label">Social Links</span>
+            </div>
+            <div class="desktop-icon" data-app="games" id="icon-games">
+                <div class="icon-img"><i class="fas fa-gamepad"></i></div>
+                <span class="icon-label">Mini Games</span>
+            </div>
+        </div>
+
+        <!-- Context Menu -->
+        <div id="context-menu" class="context-menu">
+            <ul>
+                <li id="context-refresh"><i class="fas fa-sync-alt"></i> Refresh</li>
+                <li class="separator"></li>
+                <li id="context-arrange"><i class="fas fa-th-large"></i> Arrange Icons</li>
+                <li><i class="fas fa-plus"></i> New</li>
+                <li class="separator"></li>
+                <li><i class="fas fa-paste"></i> Paste</li>
+                <li><i class="fas fa-cut"></i> Cut</li>
+                <li><i class="fas fa-copy"></i> Copy</li>
+                <li class="separator"></li>
+                <li id="context-properties"><i class="fas fa-cog"></i> Properties</li>
+            </ul>
+        </div>
+
+        <!-- Windows will be appended here -->
+        <div id="windows-container"></div>
+
+        <!-- Taskbar -->
+        <div id="taskbar" class="taskbar">
+            <div class="taskbar-left">
+                <button id="start-button" class="start-button">
+                    <img src="assets/icons/start.png" alt="Start" class="start-icon">
+                    <span>Start</span>
+                </button>
+                <div id="quick-launch" class="quick-launch">
+                    <button class="taskbar-icon" data-app="about"><i class="fas fa-user"></i></button>
+                    <button class="taskbar-icon" data-app="projects"><i class="fas fa-folder"></i></button>
+                    <button class="taskbar-icon" data-app="contact"><i class="fas fa-envelope"></i></button>
+                </div>
+            </div>
+            <div id="taskbar-apps" class="taskbar-apps">
+                <!-- Running apps will appear here -->
+            </div>
+            <div class="taskbar-right">
+                <div class="system-tray">
+                    <button class="tray-icon"><i class="fas fa-volume-up"></i></button>
+                    <button class="tray-icon" id="crt-toggle"><i class="fas fa-tv"></i></button>
+                    <div class="clock" id="clock">00:00 AM</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Start Menu -->
+        <div id="start-menu" class="start-menu">
+            <div class="start-menu-header">
+                <div class="user-info">
+                    <div class="user-icon"><i class="fas fa-user-circle"></i></div>
+                    <div class="user-name">Pratik Roy</div>
+                </div>
+            </div>
+            <div class="start-menu-content">
+                <div class="start-menu-left">
+                    <div class="start-menu-section">
+                        <div class="menu-item" data-app="about">
+                            <i class="fas fa-user"></i>
+                            <span>About Me</span>
+                        </div>
+                        <div class="menu-item" data-app="projects">
+                            <i class="fas fa-folder-open"></i>
+                            <span>Projects</span>
+                        </div>
+                        <div class="menu-item" data-app="skills">
+                            <i class="fas fa-cogs"></i>
+                            <span>Skills</span>
+                        </div>
+                        <div class="menu-item" data-app="education">
+                            <i class="fas fa-graduation-cap"></i>
+                            <span>Education</span>
+                        </div>
+                        <div class="menu-item" data-app="contact">
+                            <i class="fas fa-envelope"></i>
+                            <span>Contact</span>
+                        </div>
+                        <div class="menu-item" data-app="social">
+                            <i class="fas fa-share-alt"></i>
+                            <span>Social Links</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="start-menu-right">
+                    <div class="start-menu-section">
+                        <div class="menu-item" data-app="resume">
+                            <i class="fas fa-file-download"></i>
+                            <span>Download Resume</span>
+                        </div>
+                        <div class="menu-item" data-app="games">
+                            <i class="fas fa-gamepad"></i>
+                            <span>Mini Games</span>
+                        </div>
+                        <div class="menu-item" id="menu-settings">
+                            <i class="fas fa-cog"></i>
+                            <span>Settings</span>
+                            <i class="fas fa-chevron-right"></i>
+                            <div class="submenu" id="settings-submenu">
+                                <div class="submenu-item" id="theme-toggle">
+                                    <i class="fas fa-palette"></i>
+                                    <span>Toggle CRT Effect</span>
+                                </div>
+                                <div class="submenu-item" id="sound-toggle">
+                                    <i class="fas fa-volume-up"></i>
+                                    <span>Sound: ON</span>
+                                </div>
+                                <div class="submenu-item" id="theme-color">
+                                    <i class="fas fa-fill-drip"></i>
+                                    <span>Change Theme</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="menu-item" id="menu-help">
+                            <i class="fas fa-question-circle"></i>
+                            <span>Help</span>
+                        </div>
+                        <div class="menu-item separator"></div>
+                        <div class="menu-item" id="menu-shutdown">
+                            <i class="fas fa-power-off"></i>
+                            <span>Shut Down...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CRT Effect Overlay -->
+    <div id="crt-overlay" class="crt-overlay"></div>
+
+    <!-- Error Dialog -->
+    <div id="error-dialog" class="error-dialog">
+        <div class="error-header">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span class="error-title">Error</span>
+        </div>
+        <div class="error-content">
+            <p id="error-message">An error has occurred.</p>
+        </div>
+        <div class="error-footer">
+            <button class="dialog-button" id="error-ok">OK</button>
+        </div>
+    </div>
+
+    <!-- Audio Elements -->
+    <audio id="startup-sound" src="assets/sounds/startup.mp3" preload="auto"></audio>
+    <audio id="click-sound" src="assets/sounds/click.mp3" preload="auto"></audio>
+    <audio id="error-sound" src="assets/sounds/error.mp3" preload="auto"></audio>
+    <audio id="window-open-sound" src="assets/sounds/window-open.wav" preload="auto"></audio>
+    <audio id="window-close-sound" src="assets/sounds/close.wav" preload="auto"></audio>
+
+    <script src="script.js"></script>
+</body>
+</html>
