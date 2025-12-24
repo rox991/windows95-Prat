@@ -11,6 +11,35 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
+    <!-- Sound Elements (hidden) -->
+    <audio id="startup-sound" preload="auto">
+        <source src="assets/sounds/startup.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="click-sound" preload="auto">
+        <source src="assets/sounds/click.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="window-open-sound" preload="auto">
+        <source src="https://assets.mixkit.co/sfx/preview/mixkit-plastic-bubble-click-1124.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="window-close-sound" preload="auto">
+        <source src="https://assets.mixkit.co/sfx/preview/mixkit-arcade-game-jump-coin-216.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="error-sound" preload="auto">
+        <source src="assets/sounds/error.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="menu-open-sound" preload="auto">
+        <source src="https://assets.mixkit.co/sfx/preview/mixkit-unlock-game-notification-253.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="shutdown-sound" preload="auto">
+        <source src="https://assets.mixkit.co/sfx/preview/mixkit-computer-shutdown-566.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="game-sound" preload="auto">
+        <source src="https://assets.mixkit.co/sfx/preview/mixkit-arcade-game-jump-coin-216.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="theme-change-sound" preload="auto">
+        <source src="https://assets.mixkit.co/sfx/preview/mixkit-magic-sparkles-3001.mp3" type="audio/mpeg">
+    </audio>
+
     <!-- Startup Screen -->
     <div id="startup-screen" class="startup-screen">
         <div class="startup-content">
@@ -113,7 +142,7 @@
         <div id="taskbar" class="taskbar">
             <div class="taskbar-left">
                 <button id="start-button" class="start-button">
-                    <img src="assets/icons/start.png" alt="Start" class="start-icon">
+                    <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTAgMEgxNlYxNkgwVjBaTTIgMlYxNEgxNFYySDJaIiBmaWxsPSJibGFjayIvPgo8cGF0aCBkPSJNMyAzSDEzVjEzSDNWM1oiIGZpbGw9IndoaXRlIi8+CjxwYXRoIGQ9Ik00IDRIMTJWMTJINFY0WiIgZmlsbD0iIzAwODAiLz4KPC9zdmc+" alt="Start" class="start-icon">
                     <span>Start</span>
                 </button>
                 <div id="quick-launch" class="quick-launch">
@@ -215,6 +244,88 @@
         </div>
     </div>
 
+    <!-- Snake Game Modal -->
+    <div id="snake-game-modal" class="snake-modal">
+        <div class="snake-game-container">
+            <div class="snake-header">
+                <h3>Snake Game</h3>
+                <button id="snake-close" class="snake-close-btn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="snake-game-area">
+                <div id="snake-canvas-container">
+                    <canvas id="snake-canvas" width="400" height="400"></canvas>
+                </div>
+                <div class="snake-controls">
+                    <div class="score-board">
+                        <div class="score-item">Score: <span id="snake-score">0</span></div>
+                        <div class="score-item">High Score: <span id="snake-high-score">0</span></div>
+                        <div class="score-item">Level: <span id="snake-level">1</span></div>
+                    </div>
+                    <div class="control-buttons">
+                        <button id="snake-start" class="game-btn">Start Game</button>
+                        <button id="snake-pause" class="game-btn">Pause</button>
+                        <button id="snake-reset" class="game-btn">Reset</button>
+                    </div>
+                    <div class="touch-controls">
+                        <div class="control-row">
+                            <button class="control-btn up" id="snake-up">↑</button>
+                        </div>
+                        <div class="control-row">
+                            <button class="control-btn left" id="snake-left">←</button>
+                            <button class="control-btn down" id="snake-down">↓</button>
+                            <button class="control-btn right" id="snake-right">→</button>
+                        </div>
+                    </div>
+                    <div class="instructions">
+                        <p><strong>Controls:</strong> Use Arrow Keys or buttons</p>
+                        <p><strong>Objective:</strong> Eat food (red squares) to grow</p>
+                        <p><strong>Warning:</strong> Don't hit walls or yourself!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Theme Color Picker Modal -->
+    <div id="theme-modal" class="theme-modal">
+        <div class="theme-modal-content">
+            <div class="theme-header">
+                <h3>Choose Theme Color</h3>
+                <button id="theme-close" class="theme-close-btn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="theme-colors">
+                <div class="theme-color-item" data-color="#008080" style="background-color: #008080;">
+                    <span>Windows 95 Teal</span>
+                </div>
+                <div class="theme-color-item" data-color="#000080" style="background-color: #000080;">
+                    <span>Classic Blue</span>
+                </div>
+                <div class="theme-color-item" data-color="#800080" style="background-color: #800080;">
+                    <span>Purple</span>
+                </div>
+                <div class="theme-color-item" data-color="#008000" style="background-color: #008000;">
+                    <span>Green</span>
+                </div>
+                <div class="theme-color-item" data-color="#800000" style="background-color: #800000;">
+                    <span>Maroon</span>
+                </div>
+                <div class="theme-color-item" data-color="#808000" style="background-color: #808000;">
+                    <span>Olive</span>
+                </div>
+                <div class="theme-color-item" data-color="#000000" style="background-color: #000000;">
+                    <span>Black</span>
+                </div>
+                <div class="theme-color-item" data-color="#808080" style="background-color: #808080;">
+                    <span>Gray</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- CRT Effect Overlay -->
     <div id="crt-overlay" class="crt-overlay"></div>
 
@@ -231,13 +342,6 @@
             <button class="dialog-button" id="error-ok">OK</button>
         </div>
     </div>
-
-    <!-- Audio Elements -->
-    <audio id="startup-sound" src="assets/sounds/startup.mp3" preload="auto"></audio>
-    <audio id="click-sound" src="assets/sounds/click.mp3" preload="auto"></audio>
-    <audio id="error-sound" src="assets/sounds/error.mp3" preload="auto"></audio>
-    <audio id="window-open-sound" src="assets/sounds/window-open.wav" preload="auto"></audio>
-    <audio id="window-close-sound" src="assets/sounds/close.wav" preload="auto"></audio>
 
     <script src="script.js"></script>
 </body>
