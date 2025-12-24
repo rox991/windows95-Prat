@@ -13,6 +13,20 @@ document.addEventListener('DOMContentLoaded', function() {
         desktopIcons: [],
         taskbarApps: [],
         startupComplete: false,
+        currentTheme: '#008080',
+        
+        // Sound elements
+        sounds: {
+            startup: null,
+            click: null,
+            windowOpen: null,
+            windowClose: null,
+            error: null,
+            menuOpen: null,
+            shutdown: null,
+            game: null,
+            themeChange: null
+        },
         
         // DOM Elements
         elements: {
@@ -32,21 +46,14 @@ document.addEventListener('DOMContentLoaded', function() {
             loadingPercent: null
         },
         
-        // Audio elements
-        audio: {
-            startup: null,
-            click: null,
-            error: null,
-            windowOpen: null,
-            windowClose: null
-        },
-        
         // Initialize the OS
         init: function() {
             this.cacheElements();
+            this.cacheSounds();
             this.bindEvents();
             this.initClock();
             this.startBootSequence();
+            SnakeGame.init();
         },
         
         // Cache DOM elements
@@ -66,21 +73,41 @@ document.addEventListener('DOMContentLoaded', function() {
             this.elements.loadingStatus = document.getElementById('loading-status');
             this.elements.loadingPercent = document.getElementById('loading-percent');
             
-            // Cache audio elements
-            this.audio.startup = document.getElementById('startup-sound');
-            this.audio.click = document.getElementById('click-sound');
-            this.audio.error = document.getElementById('error-sound');
-            this.audio.windowOpen = document.getElementById('window-open-sound');
-            this.audio.windowClose = document.getElementById('window-close-sound');
-            
             // Cache desktop icons
             this.desktopIcons = document.querySelectorAll('.desktop-icon');
+        },
+        
+        // Cache sound elements
+        cacheSounds: function() {
+            this.sounds.startup = document.getElementById('startup-sound');
+            this.sounds.click = document.getElementById('click-sound');
+            this.sounds.windowOpen = document.getElementById('window-open-sound');
+            this.sounds.windowClose = document.getElementById('window-close-sound');
+            this.sounds.error = document.getElementById('error-sound');
+            this.sounds.menuOpen = document.getElementById('menu-open-sound');
+            this.sounds.shutdown = document.getElementById('shutdown-sound');
+            this.sounds.game = document.getElementById('game-sound');
+            this.sounds.themeChange = document.getElementById('theme-change-sound');
+        },
+        
+        // Play sound effect
+        playSound: function(soundName) {
+            if (!this.soundEnabled) return;
+            
+            const sound = this.sounds[soundName];
+            if (sound) {
+                sound.currentTime = 0;
+                sound.play().catch(e => {
+                    console.log('Sound play failed:', e);
+                });
+            }
         },
         
         // Bind event listeners
         bindEvents: function() {
             // Start button
             this.elements.startButton.addEventListener('click', (e) => {
+                this.playSound('click');
                 this.toggleStartMenu();
                 e.stopPropagation();
             });
@@ -88,6 +115,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Start menu items
             document.querySelectorAll('.menu-item[data-app]').forEach(item => {
                 item.addEventListener('click', (e) => {
+                    this.playSound('click');
                     const app = item.getAttribute('data-app');
                     this.openApp(app);
                     this.closeStartMenu();
@@ -98,12 +126,13 @@ document.addEventListener('DOMContentLoaded', function() {
             // Desktop icons
             this.desktopIcons.forEach(icon => {
                 icon.addEventListener('dblclick', (e) => {
+                    this.playSound('click');
                     const app = icon.getAttribute('data-app');
                     this.openApp(app);
-                    this.playSound('click');
                 });
                 
                 icon.addEventListener('click', (e) => {
+                    this.playSound('click');
                     this.clearIconSelection();
                     icon.classList.add('selected');
                 });
@@ -113,6 +142,7 @@ document.addEventListener('DOMContentLoaded', function() {
             document.addEventListener('contextmenu', (e) => {
                 if (e.target.closest('.desktop')) {
                     e.preventDefault();
+                    this.playSound('click');
                     this.showContextMenu(e.clientX, e.clientY);
                 }
             });
@@ -124,39 +154,83 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Context menu items
             document.getElementById('context-refresh').addEventListener('click', () => {
+                this.playSound('click');
                 this.showError('This feature is not implemented in this demo.', 'Information');
                 this.hideContextMenu();
             });
             
             document.getElementById('context-properties').addEventListener('click', () => {
+                this.playSound('click');
                 this.showError('Properties dialog is not available.', 'Information');
                 this.hideContextMenu();
             });
             
             // Settings
-            document.getElementById('theme-toggle').addEventListener('click', () => {
+            document.getElementById('theme-toggle').addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.playSound('click');
                 this.toggleCRTEffect();
             });
             
-            document.getElementById('sound-toggle').addEventListener('click', () => {
+            document.getElementById('sound-toggle').addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.playSound('click');
                 this.toggleSound();
                 const soundText = document.querySelector('#sound-toggle span');
                 soundText.textContent = `Sound: ${this.soundEnabled ? 'ON' : 'OFF'}`;
             });
             
+            document.getElementById('theme-color').addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.playSound('click');
+                this.openThemePicker();
+            });
+            
+            // Theme color picker
+            document.querySelectorAll('.theme-color-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    this.playSound('click');
+                    const color = item.getAttribute('data-color');
+                    this.changeThemeColor(color);
+                });
+            });
+            
+            document.getElementById('theme-close').addEventListener('click', () => {
+                this.playSound('click');
+                this.closeThemePicker();
+            });
+            
+            // Snake game controls
+            document.getElementById('snake-close').addEventListener('click', () => {
+                this.playSound('click');
+                this.closeSnakeGame();
+            });
+            
             // Shutdown
             document.getElementById('menu-shutdown').addEventListener('click', () => {
+                this.playSound('click');
                 this.shutdown();
             });
             
             // CRT toggle
             document.getElementById('crt-toggle').addEventListener('click', () => {
+                this.playSound('click');
                 this.toggleCRTEffect();
             });
             
             // Error dialog OK button
             document.getElementById('error-ok').addEventListener('click', () => {
+                this.playSound('click');
                 this.hideError();
+            });
+            
+            // Taskbar quick launch buttons
+            document.querySelectorAll('.taskbar-icon').forEach(icon => {
+                icon.addEventListener('click', (e) => {
+                    this.playSound('click');
+                    const app = icon.getAttribute('data-app');
+                    this.openApp(app);
+                });
             });
             
             // Keyboard shortcuts
@@ -164,21 +238,30 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Alt+Tab - Cycle through windows
                 if (e.altKey && e.key === 'Tab') {
                     e.preventDefault();
+                    this.playSound('click');
                     this.cycleWindows();
                 }
                 
                 // Escape - Close start menu or active window
                 if (e.key === 'Escape') {
+                    this.playSound('click');
                     if (this.isStartMenuOpen) {
                         this.closeStartMenu();
                     } else if (this.activeWindow) {
                         this.closeWindow(this.activeWindow.id);
+                    }
+                    if (document.getElementById('snake-game-modal').style.display === 'flex') {
+                        this.closeSnakeGame();
+                    }
+                    if (document.getElementById('theme-modal').style.display === 'flex') {
+                        this.closeThemePicker();
                     }
                 }
                 
                 // F11 - Toggle CRT
                 if (e.key === 'F11') {
                     e.preventDefault();
+                    this.playSound('click');
                     this.toggleCRTEffect();
                 }
             });
@@ -187,6 +270,11 @@ document.addEventListener('DOMContentLoaded', function() {
             document.addEventListener('mousedown', this.handleWindowDragStart.bind(this));
             document.addEventListener('mousemove', this.handleWindowDrag.bind(this));
             document.addEventListener('mouseup', this.handleWindowDragEnd.bind(this));
+            
+            // Touch events for mobile
+            document.addEventListener('touchstart', this.handleTouchStart.bind(this));
+            document.addEventListener('touchmove', this.handleTouchMove.bind(this));
+            document.addEventListener('touchend', this.handleTouchEnd.bind(this));
             
             // Prevent text selection while dragging
             document.addEventListener('selectstart', (e) => {
@@ -209,11 +297,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 { percent: 100, text: "Welcome to Portfolio OS!" }
             ];
             
-            // Play startup sound if enabled
-            if (this.soundEnabled) {
-                this.audio.startup.volume = 0.5;
-                this.audio.startup.play().catch(e => console.log("Audio play failed:", e));
-            }
+            // Play startup sound
+            setTimeout(() => {
+                this.playSound('startup');
+            }, 500);
             
             // Simulate boot process
             const bootInterval = setInterval(() => {
@@ -248,8 +335,6 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Toggle start menu
         toggleStartMenu: function() {
-            this.playSound('click');
-            
             if (this.isStartMenuOpen) {
                 this.closeStartMenu();
             } else {
@@ -258,12 +343,14 @@ document.addEventListener('DOMContentLoaded', function() {
         },
         
         openStartMenu: function() {
+            this.playSound('menuOpen');
             this.elements.startMenu.classList.add('active');
             this.elements.startButton.classList.add('active');
             this.isStartMenuOpen = true;
         },
         
         closeStartMenu: function() {
+            this.playSound('click');
             this.elements.startMenu.classList.remove('active');
             this.elements.startButton.classList.remove('active');
             this.isStartMenuOpen = false;
@@ -271,8 +358,6 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Open application
         openApp: function(appId) {
-            this.playSound('windowOpen');
-            
             // Close existing window of same type
             const existingWindow = this.windows.find(w => w.appId === appId && !w.minimized);
             if (existingWindow) {
@@ -331,17 +416,33 @@ document.addEventListener('DOMContentLoaded', function() {
                     };
                     break;
                     
-                case 'notepad':
+                case 'education':
                     windowConfig = {
                         id: `window-${Date.now()}`,
-                        appId: 'notepad',
-                        title: 'Bio / Notes',
-                        icon: 'fas fa-sticky-note',
-                        width: 450,
-                        height: 400,
-                        content: this.getNotepadContent()
+                        appId: 'education',
+                        title: 'Education',
+                        icon: 'fas fa-graduation-cap',
+                        width: 500,
+                        height: 450,
+                        content: this.getEducationContent()
                     };
                     break;
+                    
+                case 'social':
+                    windowConfig = {
+                        id: `window-${Date.now()}`,
+                        appId: 'social',
+                        title: 'Social Links',
+                        icon: 'fas fa-share-alt',
+                        width: 500,
+                        height: 400,
+                        content: this.getSocialContent()
+                    };
+                    break;
+                    
+                case 'games':
+                    this.openSnakeGame();
+                    return;
                     
                 case 'resume':
                     windowConfig = {
@@ -352,18 +453,6 @@ document.addEventListener('DOMContentLoaded', function() {
                         width: 400,
                         height: 350,
                         content: this.getResumeContent()
-                    };
-                    break;
-                    
-                case 'recycle':
-                    windowConfig = {
-                        id: `window-${Date.now()}`,
-                        appId: 'recycle',
-                        title: 'Recycle Bin',
-                        icon: 'fas fa-trash-alt',
-                        width: 450,
-                        height: 400,
-                        content: this.getRecycleContent()
                     };
                     break;
                     
@@ -382,6 +471,9 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Create window element
         createWindow: function(config) {
+            // Play window open sound
+            this.playSound('windowOpen');
+            
             // Create window element
             const windowEl = document.createElement('div');
             windowEl.className = 'window';
@@ -454,6 +546,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 setTimeout(() => {
                     document.querySelectorAll('.project-card').forEach(card => {
                         card.addEventListener('click', () => {
+                            this.playSound('click');
                             const projectTitle = card.querySelector('h4').textContent;
                             this.showError(`Opening project: ${projectTitle}`, 'Project Info');
                         });
@@ -468,28 +561,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 }, 100);
             }
             
-            // Bind notepad
-            if (config.appId === 'notepad') {
+            // Bind social links
+            if (config.appId === 'social') {
                 setTimeout(() => {
-                    this.bindNotepad(windowEl);
+                    this.bindSocialLinks(windowEl);
                 }, 100);
             }
             
-            // Bind recycle bin easter egg
-            if (config.appId === 'recycle') {
-                setTimeout(() => {
-                    document.querySelector('.easter-egg-btn').addEventListener('click', () => {
-                        this.activateEasterEgg();
-                    });
-                }, 100);
-            }
-            
-            // Bind resume download
+            // Bind resume download button
             if (config.appId === 'resume') {
                 setTimeout(() => {
-                    document.querySelector('.download-btn').addEventListener('click', () => {
-                        this.downloadResume();
-                    });
+                    const downloadBtn = windowEl.querySelector('.download-btn');
+                    if (downloadBtn) {
+                        downloadBtn.addEventListener('click', () => {
+                            this.playSound('click');
+                            this.downloadResume();
+                        });
+                    }
                 }, 100);
             }
             
@@ -505,25 +593,30 @@ document.addEventListener('DOMContentLoaded', function() {
             
             minimizeBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
+                this.playSound('click');
                 this.minimizeWindow(windowData.id);
             });
             
             maximizeBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
+                this.playSound('click');
                 this.toggleMaximizeWindow(windowData.id);
             });
             
             closeBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
+                this.playSound('windowClose');
                 this.closeWindow(windowData.id);
             });
             
             header.addEventListener('click', () => {
+                this.playSound('click');
                 this.bringToFront(windowData.id);
             });
             
             // Double-click header to maximize
             header.addEventListener('dblclick', () => {
+                this.playSound('click');
                 this.toggleMaximizeWindow(windowData.id);
             });
         },
@@ -532,6 +625,9 @@ document.addEventListener('DOMContentLoaded', function() {
         bringToFront: function(windowId) {
             const windowData = this.windows.find(w => w.id === windowId);
             if (!windowData) return;
+            
+            // Play sound
+            this.playSound('click');
             
             // Update z-index for all windows
             this.windows.forEach(w => {
@@ -603,8 +699,6 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Close window
         closeWindow: function(windowId) {
-            this.playSound('windowClose');
-            
             const windowData = this.windows.find(w => w.id === windowId);
             if (!windowData) return;
             
@@ -651,13 +745,15 @@ document.addEventListener('DOMContentLoaded', function() {
                           windowData.appId === 'projects' ? 'fas fa-folder' : 
                           windowData.appId === 'skills' ? 'fas fa-cogs' : 
                           windowData.appId === 'contact' ? 'fas fa-envelope' : 
-                          windowData.appId === 'notepad' ? 'fas fa-sticky-note' : 
+                          windowData.appId === 'education' ? 'fas fa-graduation-cap' :
+                          windowData.appId === 'social' ? 'fas fa-share-alt' :
                           windowData.appId === 'resume' ? 'fas fa-file-download' : 
                           'fas fa-trash-alt'}"></i>
                 <span>${windowData.title}</span>
             `;
             
             appEl.addEventListener('click', () => {
+                this.playSound('click');
                 if (windowData.minimized) {
                     this.minimizeWindow(windowData.id);
                 } else {
@@ -715,8 +811,8 @@ document.addEventListener('DOMContentLoaded', function() {
         cycleWindows: function() {
             if (this.windows.length === 0) return;
             
-            const currentIndex = this.windows.findIndex(w => w.id === this.activeWindow.id);
-            const nextIndex = (currentIndex + 1) % this.windows.length;
+            const currentIndex = this.windows.findIndex(w => w.id === this.activeWindow?.id);
+            const nextIndex = currentIndex === -1 ? 0 : (currentIndex + 1) % this.windows.length;
             
             this.bringToFront(this.windows[nextIndex].id);
         },
@@ -763,10 +859,51 @@ document.addEventListener('DOMContentLoaded', function() {
             this.draggingWindow = null;
         },
         
+        // Touch handling
+        handleTouchStart: function(e) {
+            if (e.target.closest('.window-header')) {
+                const windowEl = e.target.closest('.window');
+                if (!windowEl) return;
+                
+                const windowData = this.windows.find(w => w.element === windowEl);
+                if (!windowData || windowData.maximized) return;
+                
+                this.draggingWindow = windowData;
+                this.bringToFront(windowData.id);
+                
+                const rect = windowEl.getBoundingClientRect();
+                const touch = e.touches[0];
+                this.dragOffset.x = touch.clientX - rect.left;
+                this.dragOffset.y = touch.clientY - rect.top;
+                
+                e.preventDefault();
+            }
+        },
+        
+        handleTouchMove: function(e) {
+            if (!this.draggingWindow) return;
+            
+            const windowEl = this.draggingWindow.element;
+            const touch = e.touches[0];
+            const x = touch.clientX - this.dragOffset.x;
+            const y = touch.clientY - this.dragOffset.y;
+            
+            // Boundary checking
+            const maxX = window.innerWidth - windowEl.offsetWidth;
+            const maxY = window.innerHeight - windowEl.offsetHeight - 40;
+            
+            windowEl.style.left = `${Math.max(0, Math.min(x, maxX))}px`;
+            windowEl.style.top = `${Math.max(0, Math.min(y, maxY))}px`;
+            
+            e.preventDefault();
+        },
+        
+        handleTouchEnd: function() {
+            this.draggingWindow = null;
+        },
+        
         // Show context menu
         showContextMenu: function(x, y) {
-            this.playSound('click');
-            
             const contextMenu = this.elements.contextMenu;
             contextMenu.style.left = `${x}px`;
             contextMenu.style.top = `${y}px`;
@@ -796,17 +933,17 @@ document.addEventListener('DOMContentLoaded', function() {
         toggleCRTEffect: function() {
             this.crtEnabled = !this.crtEnabled;
             this.elements.crtOverlay.classList.toggle('crt-on', this.crtEnabled);
-            this.playSound('click');
             
             if (this.crtEnabled) {
                 this.showError('CRT effect enabled. Press F11 to toggle.', 'Display Settings');
+            } else {
+                this.showError('CRT effect disabled. Press F11 to toggle.', 'Display Settings');
             }
         },
         
         // Toggle sound
         toggleSound: function() {
             this.soundEnabled = !this.soundEnabled;
-            this.playSound('click');
             
             const message = this.soundEnabled ? 
                 'Sound enabled.' : 
@@ -814,23 +951,97 @@ document.addEventListener('DOMContentLoaded', function() {
             this.showError(message, 'Audio Settings');
         },
         
-        // Play sound
-        playSound: function(soundName) {
-            if (!this.soundEnabled || !this.audio[soundName]) return;
+        // Open theme picker
+        openThemePicker: function() {
+            document.getElementById('theme-modal').style.display = 'flex';
+            this.bringModalToFront('theme-modal');
+        },
+        
+        closeThemePicker: function() {
+            document.getElementById('theme-modal').style.display = 'none';
+        },
+        
+        // Bring modal to front
+        bringModalToFront: function(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.style.zIndex = this.zIndexCounter++;
+            }
+        },
+        
+        // Change theme color
+        changeThemeColor: function(color) {
+            this.playSound('themeChange');
+            this.currentTheme = color;
             
-            try {
-                const audio = this.audio[soundName].cloneNode();
-                audio.volume = soundName === 'startup' ? 0.5 : 0.3;
-                audio.play().catch(e => console.log("Sound play failed:", e));
-            } catch (e) {
-                console.log("Sound error:", e);
+            // Update CSS variables
+            document.documentElement.style.setProperty('--theme-color', color);
+            
+            // Update taskbar start button gradient
+            const startButtons = document.querySelectorAll('.start-button');
+            startButtons.forEach(btn => {
+                btn.style.background = `linear-gradient(to right, ${color}, ${this.lightenColor(color, 30)})`;
+            });
+            
+            // Update window headers
+            const windowHeaders = document.querySelectorAll('.window-header');
+            windowHeaders.forEach(header => {
+                header.style.background = `linear-gradient(to right, ${color}, ${this.lightenColor(color, 30)})`;
+            });
+            
+            // Update desktop background
+            document.body.style.backgroundColor = color;
+            
+            // Store in localStorage
+            localStorage.setItem('portfolioTheme', color);
+            
+            this.closeThemePicker();
+            this.showError(`Theme color changed to ${this.getColorName(color)}`, 'Theme Settings');
+        },
+        
+        // Helper to lighten color
+        lightenColor: function(color, percent) {
+            const num = parseInt(color.replace('#', ''), 16);
+            const amt = Math.round(2.55 * percent);
+            const R = (num >> 16) + amt;
+            const G = (num >> 8 & 0x00FF) + amt;
+            const B = (num & 0x0000FF) + amt;
+            
+            return `#${(
+                0x1000000 + 
+                (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 + 
+                (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 + 
+                (B < 255 ? B < 1 ? 0 : B : 255)
+            ).toString(16).slice(1)}`;
+        },
+        
+        // Get color name from hex
+        getColorName: function(hex) {
+            const colors = {
+                '#008080': 'Windows 95 Teal',
+                '#000080': 'Classic Blue',
+                '#800080': 'Purple',
+                '#008000': 'Green',
+                '#800000': 'Maroon',
+                '#808000': 'Olive',
+                '#000000': 'Black',
+                '#808080': 'Gray'
+            };
+            return colors[hex] || hex;
+        },
+        
+        // Load saved theme
+        loadSavedTheme: function() {
+            const savedTheme = localStorage.getItem('portfolioTheme');
+            if (savedTheme) {
+                this.currentTheme = savedTheme;
+                this.changeThemeColor(savedTheme);
             }
         },
         
         // Show error dialog
         showError: function(message, title = 'Error') {
             this.playSound('error');
-            
             const errorDialog = this.elements.errorDialog;
             document.getElementById('error-message').textContent = message;
             document.querySelector('.error-title').textContent = title;
@@ -867,9 +1078,21 @@ document.addEventListener('DOMContentLoaded', function() {
             setInterval(updateClock, 1000);
         },
         
+        // Open Snake Game
+        openSnakeGame: function() {
+            this.playSound('game');
+            document.getElementById('snake-game-modal').style.display = 'flex';
+            this.bringModalToFront('snake-game-modal');
+        },
+        
+        closeSnakeGame: function() {
+            document.getElementById('snake-game-modal').style.display = 'none';
+            SnakeGame.stopGame();
+        },
+        
         // Shutdown sequence
         shutdown: function() {
-            this.playSound('click');
+            this.playSound('shutdown');
             this.closeStartMenu();
             
             // Close all windows
@@ -905,7 +1128,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <i class="fas fa-user"></i>
                     </div>
                     <div class="profile-text">
-                        <p>Hello! I'm Pratik a passionate frontend developer with a love for retro computing and creative UI/UX design.</p>
+                        <p>Hello! I'm Pratik Roy, a passionate Class 12 student preparing for JEE while pursuing my love for coding and technology.</p>
                         <p>This portfolio is built to mimic the classic Windows 95 interface while showcasing my skills in HTML, CSS, and JavaScript.</p>
                         <p>I specialize in creating interactive, visually appealing web applications with attention to detail and user experience.</p>
                     </div>
@@ -913,8 +1136,94 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div style="margin-top: 20px;">
                     <h4>Contact Information</h4>
                     <p><strong>Email:</strong> roypratik1554@gmail.com</p>
-                    <p><strong>Location:</strong> Digital World</p>
-                    <p><strong>Status:</strong> Available for projects</p>
+                    <p><strong>Location:</strong> India</p>
+                    <p><strong>Status:</strong> Student & Developer</p>
+                </div>
+            `;
+        },
+        
+        getEducationContent: function() {
+            return `
+                <h3>My Education Journey</h3>
+                <p>Currently pursuing my academic goals while developing my programming skills:</p>
+                
+                <div class="education-timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-year">2023-2024</div>
+                        <div class="timeline-content">
+                            <h4>Class 12 - Science Stream (PCM)</h4>
+                            <p>Currently in Class 12 with Physics, Chemistry, and Mathematics as main subjects. Maintaining excellent academic record while balancing coding projects.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="timeline-item">
+                        <div class="timeline-year">2022-Present</div>
+                        <div class="timeline-content">
+                            <h4>JEE (Joint Entrance Examination) Preparation</h4>
+                            <p>Preparing for one of India's most competitive engineering entrance exams. Developing strong problem-solving skills that complement my programming abilities.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="timeline-item">
+                        <div class="timeline-year">2020-Present</div>
+                        <div class="timeline-content">
+                            <h4>Self-Taught Programmer</h4>
+                            <p>Learned web development through online resources, building projects, and consistent practice. Developed expertise in frontend technologies and UI/UX design.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="timeline-item">
+                        <div class="timeline-year">Future Goals</div>
+                        <div class="timeline-content">
+                            <h4>Computer Science Engineering</h4>
+                            <p>Aiming to pursue Computer Science Engineering to further enhance my technical skills and work on innovative projects in software development.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 20px; padding: 10px; background-color: #dfdfdf; border: 2px solid #808080;">
+                    <h4>Academic & Coding Balance</h4>
+                    <p>I believe in the synergy between academic learning and practical coding skills. My JEE preparation has enhanced my logical thinking, which directly benefits my programming projects.</p>
+                </div>
+            `;
+        },
+        
+        getSocialContent: function() {
+            return `
+                <h3>Connect With Me</h3>
+                <p>Let's connect on these platforms:</p>
+                
+                <div class="social-links">
+                    <a href="https://github.com/rox991" target="_blank" class="social-link github" onclick="PortfolioOS.playSound('click')">
+                        <i class="fab fa-github"></i>
+                        <div class="social-info">
+                            <h4>GitHub</h4>
+                            <p>github.com/rox991</p>
+                            <p>Check out my coding projects and contributions</p>
+                        </div>
+                    </a>
+                    
+                    <a href="https://instagram.com/_prat_7r" target="_blank" class="social-link instagram" onclick="PortfolioOS.playSound('click')">
+                        <i class="fab fa-instagram"></i>
+                        <div class="social-info">
+                            <h4>Instagram</h4>
+                            <p>@_prat_7r</p>
+                            <p>Follow for updates and behind-the-scenes</p>
+                        </div>
+                    </a>
+                    
+                    <div class="social-link" style="cursor: default; background-color: #ffffcc;">
+                        <i class="fas fa-heart" style="color: #ff0000;"></i>
+                        <div class="social-info">
+                            <h4>Let's Collaborate!</h4>
+                            <p>Open to interesting projects and learning opportunities</p>
+                            <p>Feel free to reach out for coding discussions or collaborations</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 20px; font-size: 12px; color: #606060;">
+                    <p><strong>Note:</strong> Links will open in a new tab</p>
                 </div>
             `;
         },
@@ -925,28 +1234,28 @@ document.addEventListener('DOMContentLoaded', function() {
                 <p>Here are some of my recent projects. Click on any project for more details.</p>
                 <div class="project-grid">
                     <div class="project-card">
-                        <h4>Retro Game Collection</h4>
-                        <p>A collection of classic games rebuilt with modern JavaScript.</p>
+                        <h4>Windows 95 Portfolio</h4>
+                        <p>A fully interactive Windows 95 themed portfolio built with vanilla JavaScript.</p>
                     </div>
                     <div class="project-card">
-                        <h4>Interactive Data Dashboard</h4>
-                        <p>Real-time data visualization with D3.js and custom UI components.</p>
+                        <h4>JEE Preparation Assistant</h4>
+                        <p>Web app with physics, chemistry, and math problem solvers and practice tests.</p>
                     </div>
                     <div class="project-card">
-                        <h4>E-commerce Platform</h4>
-                        <p>Full-featured online store with cart, checkout, and user accounts.</p>
+                        <h4>Interactive Snake Game</h4>
+                        <p>Classic snake game with touch controls and progressive difficulty levels.</p>
                     </div>
                     <div class="project-card">
-                        <h4>Music Player Web App</h4>
-                        <p>Custom audio player with visualizations and playlist management.</p>
+                        <h4>Science Calculator Suite</h4>
+                        <p>Collection of scientific calculators for physics and chemistry problems.</p>
                     </div>
                     <div class="project-card">
-                        <h4>Portfolio OS (This!)</h4>
-                        <p>A Windows 95-themed portfolio built with vanilla JavaScript.</p>
+                        <h4>Task Manager App</h4>
+                        <p>Productivity app with Pomodoro timer and task organization features.</p>
                     </div>
                     <div class="project-card">
-                        <h4>API Integration Toolkit</h4>
-                        <p>Modular library for connecting to various third-party APIs.</p>
+                        <h4>Responsive Weather App</h4>
+                        <p>Weather application with location detection and 5-day forecasts.</p>
                     </div>
                 </div>
             `;
@@ -986,20 +1295,20 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                     <div class="skill-item">
                         <div class="skill-header">
-                            <span class="skill-name">React</span>
-                            <span class="skill-percent">80%</span>
+                            <span class="skill-name">Responsive Design</span>
+                            <span class="skill-percent">88%</span>
                         </div>
                         <div class="skill-bar">
-                            <div class="skill-progress" data-percent="80"></div>
+                            <div class="skill-progress" data-percent="88"></div>
                         </div>
                     </div>
                     <div class="skill-item">
                         <div class="skill-header">
-                            <span class="skill-name">Node.js</span>
-                            <span class="skill-percent">75%</span>
+                            <span class="skill-name">Problem Solving</span>
+                            <span class="skill-percent">92%</span>
                         </div>
                         <div class="skill-bar">
-                            <div class="skill-progress" data-percent="75"></div>
+                            <div class="skill-progress" data-percent="92"></div>
                         </div>
                     </div>
                     <div class="skill-item">
@@ -1044,42 +1353,6 @@ document.addEventListener('DOMContentLoaded', function() {
             `;
         },
         
-        getNotepadContent: function() {
-            return `
-                <h3>Bio / Notes</h3>
-                <p>Personal notes and thoughts:</p>
-                <textarea class="notepad-content" id="notepad-text">
-Hello and welcome to my portfolio!
-
-This is a simulation of Windows 95 built entirely with HTML, CSS, and vanilla JavaScript.
-
-ABOUT ME:
-- Frontend Developer with 5+ years experience
-- Passionate about creative UI/UX
-- Love for retro computing and classic interfaces
-- Strong focus on performance and accessibility
-
-CURRENT PROJECTS:
-1. This Windows 95 Portfolio
-2. Retro Game Engine
-3. CSS Framework for nostalgic UIs
-
-SKILLS:
-• HTML5, CSS3, JavaScript (ES6+)
-• React, Vue.js, Svelte
-• Node.js, Express
-• UI/UX Design, Figma
-• Git, Webpack, CI/CD
-
-CONTACT:
-Feel free to explore all the apps and features!
-Double-click icons or use the Start menu.
-
-- Portfolio Owner
-                </textarea>
-            `;
-        },
-        
         getResumeContent: function() {
             return `
                 <div class="resume-content">
@@ -1090,29 +1363,13 @@ Double-click icons or use the Start menu.
                     <p>Download my complete resume with detailed experience, education, and references.</p>
                     <p>The resume includes:</p>
                     <ul style="text-align: left; margin: 15px 0; padding-left: 20px;">
-                        <li>Professional Summary</li>
-                        <li>Work Experience</li>
-                        <li>Education & Certifications</li>
-                        <li>Technical Skills</li>
-                        <li>Project Portfolio</li>
-                        <li>References</li>
+                        <li>Academic Achievements</li>
+                        <li>Technical Skills & Projects</li>
+                        <li>Education Details</li>
+                        <li>Certifications</li>
+                        <li>Contact Information</li>
                     </ul>
                     <button class="download-btn">Download Resume (PDF)</button>
-                </div>
-            `;
-        },
-        
-        getRecycleContent: function() {
-            return `
-                <div class="recycle-content">
-                    <div class="recycle-icon">
-                        <i class="fas fa-trash-alt"></i>
-                    </div>
-                    <h3>Recycle Bin</h3>
-                    <p>The Recycle Bin contains deleted items from your portfolio.</p>
-                    <p>Currently empty. But wait... there's something special here!</p>
-                    <p>Click the button below for a fun Easter egg!</p>
-                    <button class="easter-egg-btn">Discover Easter Egg</button>
                 </div>
             `;
         },
@@ -1130,6 +1387,7 @@ Double-click icons or use the Start menu.
             const form = windowEl.querySelector('#contact-form');
             form.addEventListener('submit', (e) => {
                 e.preventDefault();
+                this.playSound('click');
                 
                 const name = document.getElementById('contact-name').value;
                 const email = document.getElementById('contact-email').value;
@@ -1153,63 +1411,443 @@ Double-click icons or use the Start menu.
                 this.showError(`Thank you, ${name}! Your message has been sent. I'll get back to you soon.`, 'Message Sent');
                 form.reset();
             });
-        },
-        
-        // Bind notepad
-        bindNotepad: function(windowEl) {
-            const textarea = windowEl.querySelector('#notepad-text');
             
-            // Auto-save to localStorage
-            textarea.addEventListener('input', () => {
-                localStorage.setItem('portfolioNotepad', textarea.value);
-            });
-            
-            // Load saved content
-            const savedContent = localStorage.getItem('portfolioNotepad');
-            if (savedContent) {
-                textarea.value = savedContent;
+            // Bind reset button
+            const resetBtn = form.querySelector('button[type="reset"]');
+            if (resetBtn) {
+                resetBtn.addEventListener('click', () => {
+                    this.playSound('click');
+                });
             }
         },
         
-        // Activate Easter egg
-        activateEasterEgg: function() {
-            this.playSound('click');
-            
-            // Create fun visual effect
-            const colors = ['#000080', '#008080', '#800080', '#808000', '#008000'];
-            let flashes = 0;
-            
-            const flashInterval = setInterval(() => {
-                document.body.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-                flashes++;
-                
-                if (flashes >= 10) {
-                    clearInterval(flashInterval);
-                    document.body.style.backgroundColor = '#008080';
-                    
-                    // Show special message
-                    this.showError('Congratulations! You found the Easter egg! 🥚', 'Easter Egg Found!');
-                    
-                    // Open a secret window
-                    setTimeout(() => {
-                        this.openApp('about');
-                    }, 1000);
+        // Bind social links
+        bindSocialLinks: function(windowEl) {
+            const links = windowEl.querySelectorAll('.social-link');
+            links.forEach(link => {
+                if (link.getAttribute('href')) {
+                    link.addEventListener('click', (e) => {
+                        this.playSound('click');
+                    });
                 }
-            }, 150);
+            });
         },
         
         // Download resume
         downloadResume: function() {
-            this.playSound('click');
-            
             // Create a fake download
             this.showError('Resume downloaded successfully! (This is a demo - in a real app, this would download a PDF)', 'Download Complete');
+        }
+    };
+    
+    // Snake Game Module
+    const SnakeGame = {
+        canvas: null,
+        ctx: null,
+        gridSize: 20,
+        snake: [],
+        direction: 'right',
+        nextDirection: 'right',
+        food: { x: 0, y: 0 },
+        score: 0,
+        highScore: 0,
+        gameSpeed: 150,
+        isRunning: false,
+        isPaused: false,
+        gameLoop: null,
+        level: 1,
+        gridWidth: 20,
+        gridHeight: 20,
+        
+        init: function() {
+            this.canvas = document.getElementById('snake-canvas');
+            this.ctx = this.canvas.getContext('2d');
             
-            // In a real application, this would trigger an actual file download
-            // For demo purposes, we just show a message
+            // Load high score from localStorage
+            this.highScore = localStorage.getItem('snakeHighScore') || 0;
+            document.getElementById('snake-high-score').textContent = this.highScore;
+            
+            this.setupEventListeners();
+            this.resetGame();
+            this.draw();
+        },
+        
+        setupEventListeners: function() {
+            // Game control buttons
+            document.getElementById('snake-start').addEventListener('click', () => {
+                PortfolioOS.playSound('game');
+                this.startGame();
+            });
+            
+            document.getElementById('snake-pause').addEventListener('click', () => {
+                PortfolioOS.playSound('click');
+                this.togglePause();
+            });
+            
+            document.getElementById('snake-reset').addEventListener('click', () => {
+                PortfolioOS.playSound('click');
+                this.resetGame();
+            });
+            
+            // Direction control buttons
+            document.getElementById('snake-up').addEventListener('click', () => {
+                PortfolioOS.playSound('click');
+                if (this.direction !== 'down') this.nextDirection = 'up';
+            });
+            
+            document.getElementById('snake-down').addEventListener('click', () => {
+                PortfolioOS.playSound('click');
+                if (this.direction !== 'up') this.nextDirection = 'down';
+            });
+            
+            document.getElementById('snake-left').addEventListener('click', () => {
+                PortfolioOS.playSound('click');
+                if (this.direction !== 'right') this.nextDirection = 'left';
+            });
+            
+            document.getElementById('snake-right').addEventListener('click', () => {
+                PortfolioOS.playSound('click');
+                if (this.direction !== 'left') this.nextDirection = 'right';
+            });
+            
+            // Keyboard controls
+            document.addEventListener('keydown', (e) => {
+                if (!this.isRunning || this.isPaused) return;
+                
+                switch(e.key) {
+                    case 'ArrowUp':
+                        PortfolioOS.playSound('click');
+                        if (this.direction !== 'down') this.nextDirection = 'up';
+                        break;
+                    case 'ArrowDown':
+                        PortfolioOS.playSound('click');
+                        if (this.direction !== 'up') this.nextDirection = 'down';
+                        break;
+                    case 'ArrowLeft':
+                        PortfolioOS.playSound('click');
+                        if (this.direction !== 'right') this.nextDirection = 'left';
+                        break;
+                    case 'ArrowRight':
+                        PortfolioOS.playSound('click');
+                        if (this.direction !== 'left') this.nextDirection = 'right';
+                        break;
+                }
+            });
+            
+            // Touch controls for mobile
+            let touchStartX = 0;
+            let touchStartY = 0;
+            
+            this.canvas.addEventListener('touchstart', (e) => {
+                if (!this.isRunning || this.isPaused) return;
+                
+                touchStartX = e.touches[0].clientX;
+                touchStartY = e.touches[0].clientY;
+                e.preventDefault();
+            });
+            
+            this.canvas.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+            });
+            
+            this.canvas.addEventListener('touchend', (e) => {
+                if (!this.isRunning || this.isPaused) return;
+                
+                const touchEndX = e.changedTouches[0].clientX;
+                const touchEndY = e.changedTouches[0].clientY;
+                
+                const dx = touchEndX - touchStartX;
+                const dy = touchEndY - touchStartY;
+                
+                // Determine swipe direction
+                if (Math.abs(dx) > Math.abs(dy)) {
+                    // Horizontal swipe
+                    if (dx > 0 && this.direction !== 'left') {
+                        this.nextDirection = 'right';
+                    } else if (dx < 0 && this.direction !== 'right') {
+                        this.nextDirection = 'left';
+                    }
+                } else {
+                    // Vertical swipe
+                    if (dy > 0 && this.direction !== 'up') {
+                        this.nextDirection = 'down';
+                    } else if (dy < 0 && this.direction !== 'down') {
+                        this.nextDirection = 'up';
+                    }
+                }
+                
+                e.preventDefault();
+            });
+        },
+        
+        startGame: function() {
+            if (this.isRunning && !this.isPaused) return;
+            
+            if (!this.isRunning) {
+                this.resetGame();
+            }
+            
+            this.isRunning = true;
+            this.isPaused = false;
+            document.getElementById('snake-start').textContent = 'Restart';
+            document.getElementById('snake-pause').textContent = 'Pause';
+            
+            if (this.gameLoop) {
+                clearInterval(this.gameLoop);
+            }
+            
+            this.gameLoop = setInterval(() => this.update(), this.gameSpeed);
+        },
+        
+        togglePause: function() {
+            if (!this.isRunning) return;
+            
+            this.isPaused = !this.isPaused;
+            document.getElementById('snake-pause').textContent = this.isPaused ? 'Resume' : 'Pause';
+            
+            if (this.isPaused) {
+                clearInterval(this.gameLoop);
+            } else {
+                this.gameLoop = setInterval(() => this.update(), this.gameSpeed);
+            }
+        },
+        
+        stopGame: function() {
+            this.isRunning = false;
+            this.isPaused = false;
+            if (this.gameLoop) {
+                clearInterval(this.gameLoop);
+                this.gameLoop = null;
+            }
+            document.getElementById('snake-start').textContent = 'Start Game';
+            document.getElementById('snake-pause').textContent = 'Pause';
+        },
+        
+        resetGame: function() {
+            this.stopGame();
+            
+            // Reset snake
+            this.snake = [
+                { x: 10, y: 10 },
+                { x: 9, y: 10 },
+                { x: 8, y: 10 }
+            ];
+            
+            this.direction = 'right';
+            this.nextDirection = 'right';
+            this.score = 0;
+            this.level = 1;
+            this.gameSpeed = 150;
+            
+            // Generate initial food
+            this.generateFood();
+            
+            // Update UI
+            document.getElementById('snake-score').textContent = this.score;
+            document.getElementById('snake-level').textContent = this.level;
+            document.getElementById('snake-high-score').textContent = this.highScore;
+            
+            // Redraw
+            this.draw();
+        },
+        
+        generateFood: function() {
+            let foodOnSnake;
+            do {
+                foodOnSnake = false;
+                this.food = {
+                    x: Math.floor(Math.random() * this.gridWidth),
+                    y: Math.floor(Math.random() * this.gridHeight)
+                };
+                
+                // Check if food is on snake
+                for (let segment of this.snake) {
+                    if (segment.x === this.food.x && segment.y === this.food.y) {
+                        foodOnSnake = true;
+                        break;
+                    }
+                }
+            } while (foodOnSnake);
+        },
+        
+        update: function() {
+            // Update direction
+            this.direction = this.nextDirection;
+            
+            // Calculate new head position
+            const head = { ...this.snake[0] };
+            
+            switch(this.direction) {
+                case 'up': head.y--; break;
+                case 'down': head.y++; break;
+                case 'left': head.x--; break;
+                case 'right': head.x++; break;
+            }
+            
+            // Check wall collision
+            if (head.x < 0 || head.x >= this.gridWidth || head.y < 0 || head.y >= this.gridHeight) {
+                this.gameOver();
+                return;
+            }
+            
+            // Check self collision
+            for (let segment of this.snake) {
+                if (segment.x === head.x && segment.y === head.y) {
+                    this.gameOver();
+                    return;
+                }
+            }
+            
+            // Add new head
+            this.snake.unshift(head);
+            
+            // Check food collision
+            if (head.x === this.food.x && head.y === this.food.y) {
+                // Play sound
+                PortfolioOS.playSound('game');
+                
+                // Increase score
+                this.score += 10;
+                
+                // Update high score
+                if (this.score > this.highScore) {
+                    this.highScore = this.score;
+                    localStorage.setItem('snakeHighScore', this.highScore);
+                }
+                
+                // Level up every 50 points
+                if (this.score % 50 === 0) {
+                    this.level++;
+                    this.gameSpeed = Math.max(50, this.gameSpeed - 20); // Speed up
+                    PortfolioOS.playSound('themeChange');
+                }
+                
+                // Generate new food
+                this.generateFood();
+                
+                // Update UI
+                document.getElementById('snake-score').textContent = this.score;
+                document.getElementById('snake-high-score').textContent = this.highScore;
+                document.getElementById('snake-level').textContent = this.level;
+            } else {
+                // Remove tail if no food eaten
+                this.snake.pop();
+            }
+            
+            // Redraw
+            this.draw();
+        },
+        
+        draw: function() {
+            // Clear canvas
+            this.ctx.fillStyle = '#000';
+            this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+            
+            // Draw grid
+            this.ctx.strokeStyle = '#222';
+            this.ctx.lineWidth = 0.5;
+            
+            for (let x = 0; x <= this.canvas.width; x += this.gridSize) {
+                this.ctx.beginPath();
+                this.ctx.moveTo(x, 0);
+                this.ctx.lineTo(x, this.canvas.height);
+                this.ctx.stroke();
+            }
+            
+            for (let y = 0; y <= this.canvas.height; y += this.gridSize) {
+                this.ctx.beginPath();
+                this.ctx.moveTo(0, y);
+                this.ctx.lineTo(this.canvas.width, y);
+                this.ctx.stroke();
+            }
+            
+            // Draw snake
+            for (let i = 0; i < this.snake.length; i++) {
+                const segment = this.snake[i];
+                
+                // Head is different color
+                if (i === 0) {
+                    this.ctx.fillStyle = '#0a0';
+                } else {
+                    this.ctx.fillStyle = '#0f0';
+                }
+                
+                this.ctx.fillRect(
+                    segment.x * this.gridSize + 1,
+                    segment.y * this.gridSize + 1,
+                    this.gridSize - 2,
+                    this.gridSize - 2
+                );
+                
+                // Add border to segments
+                this.ctx.strokeStyle = '#000';
+                this.ctx.lineWidth = 1;
+                this.ctx.strokeRect(
+                    segment.x * this.gridSize + 1,
+                    segment.y * this.gridSize + 1,
+                    this.gridSize - 2,
+                    this.gridSize - 2
+                );
+            }
+            
+            // Draw food
+            this.ctx.fillStyle = '#f00';
+            this.ctx.beginPath();
+            this.ctx.arc(
+                this.food.x * this.gridSize + this.gridSize / 2,
+                this.food.y * this.gridSize + this.gridSize / 2,
+                this.gridSize / 2 - 2,
+                0,
+                Math.PI * 2
+            );
+            this.ctx.fill();
+            
+            // Draw score on canvas
+            this.ctx.fillStyle = '#fff';
+            this.ctx.font = '12px "Share Tech Mono"';
+            this.ctx.fillText(`Score: ${this.score}`, 5, 15);
+            this.ctx.fillText(`Level: ${this.level}`, 5, 30);
+            
+            // Draw game over if needed
+            if (!this.isRunning && this.score > 0) {
+                this.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                this.ctx.fillStyle = '#fff';
+                this.ctx.font = '24px "Share Tech Mono"';
+                this.ctx.textAlign = 'center';
+                this.ctx.fillText('GAME OVER', this.canvas.width / 2, this.canvas.height / 2 - 20);
+                
+                this.ctx.font = '16px "Share Tech Mono"';
+                this.ctx.fillText(`Final Score: ${this.score}`, this.canvas.width / 2, this.canvas.height / 2 + 10);
+                this.ctx.fillText(`High Score: ${this.highScore}`, this.canvas.width / 2, this.canvas.height / 2 + 30);
+            }
+            
+            // Draw paused text
+            if (this.isPaused) {
+                this.ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                this.ctx.fillStyle = '#fff';
+                this.ctx.font = '24px "Share Tech Mono"';
+                this.ctx.textAlign = 'center';
+                this.ctx.fillText('PAUSED', this.canvas.width / 2, this.canvas.height / 2);
+            }
+        },
+        
+        gameOver: function() {
+            PortfolioOS.playSound('error');
+            this.stopGame();
+            this.draw();
+            
+            // Show game over message
+            setTimeout(() => {
+                PortfolioOS.showError(`Game Over! Final Score: ${this.score}. High Score: ${this.highScore}`, 'Snake Game');
+            }, 500);
         }
     };
     
     // Initialize the OS
     PortfolioOS.init();
+    PortfolioOS.loadSavedTheme();
 });
